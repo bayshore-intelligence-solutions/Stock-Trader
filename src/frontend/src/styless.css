@@ -1,0 +1,270 @@
+@font-face {
+  font-family: 'Roboto';
+  src: local('Roboto'), url(./fonts/Roboto Regular.ttf) format('truetype');
+}
+.App {
+  font-family: sans-serif;
+  text-align: center;
+}
+
+.alert-row td {
+  background-color: #ff0000;
+}
+
+.dataframe {
+	padding-top: 7%;
+	padding-right: 5%;
+  float: right;
+}
+
+thead {
+	background-color:  #03308B;
+	color: white;
+	font-size: 20px;
+  text-align: center;
+}
+
+td {
+	text-align: center;
+	font-family: "Roboto", "Courier New", sans-serif;
+}
+
+.filter-label{
+	display: block;
+}
+
+.react-bs-table-sizePerPage-dropdown {
+	display: none;
+}
+
+
+
+body {
+  background-color: #F2F2F2;
+  color: white;
+  font-family: "Helvetica Neue", "Helvetica", "Roboto", "Arial", sans-serif;
+  margin: 0;
+  box-sizing: border-box;
+}
+
+.menubar {
+  display: block;
+  height: 60px;
+  background-color: #03308B ;
+  box-shadow: 2px 5px 5px 0 rgba(0, 0, 0, 0.12);
+  text-align: center;
+}
+
+.menubar span {
+  display: inline-block;
+  position: absolute;
+  left: 50%;
+  -webkit-transform: translateX(-50%);
+          transform: translateX(-50%);
+  font-weight: 300;
+  font-size: 3em;
+  line-height: 50px;
+}
+
+#hambmenu {
+  position: relative;
+  width: 40px;
+  height: 45px;
+  float: left;
+  -webkit-transition: 0.5s ease-in-out;
+  transition: 0.5s ease-in-out;
+  cursor: pointer;
+}
+#hambmenu span {
+  position: absolute;
+  height: 5px;
+  width: 100%;
+  vertical-align: middle;
+  margin: 20px 0 0 15px;
+  background: white;
+  border-radius: 8px;
+  opacity: 1;
+  left: 0;
+  -webkit-transform: rotate(0deg);
+          transform: rotate(0deg);
+  -webkit-transition: 0.25s ease-in-out;
+  transition: 0.25s ease-in-out;
+  padding: 0px;
+}
+
+.hambclicker {
+  content: "";
+  height: 48px;
+  width: 55px;
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  cursor: pointer;
+  z-index: 9;
+}
+
+#hambmenu span:nth-child(1) {
+  top: 0px;
+}
+
+#hambmenu span:nth-child(2), #hambmenu span:nth-child(3) {
+  top: 10px;
+}
+
+#hambmenu span:nth-child(4) {
+  top: 20px;
+}
+
+#hambmenu.isopen span:nth-child(1) {
+  top: 18px;
+  width: 0%;
+  left: 50%;
+  opacity: 0;
+}
+
+#hambmenu.isopen span:nth-child(2) {
+  -webkit-transform: rotate(45deg);
+          transform: rotate(45deg);
+}
+
+#hambmenu.isopen span:nth-child(3) {
+  -webkit-transform: rotate(-45deg);
+          transform: rotate(-45deg);
+}
+
+#hambmenu.isopen span:nth-child(4) {
+  top: 18px;
+  width: 0%;
+  left: 50%;
+  opacity: 0;
+}
+
+#menu {
+  display: flex;
+  flex-direction: column;
+  position: absolute;
+  height: calc(100vh - 60px);
+  width: 210px;
+  background-color: #03308B ;
+  -webkit-transform: translateX(-100%);
+          transform: translateX(-100%);
+  -webkit-transition: -webkit-transform 300ms;
+  transition: -webkit-transform 300ms;
+  transition: transform 300ms;
+  transition: transform 300ms, -webkit-transform 300ms;
+}
+#menu ul {
+
+  margin-top: 0px;
+  padding: 0px;
+  color: white;
+  list-style-type: none;
+  text-align: left;
+}
+#menu li {
+
+  transform-origin: top;
+  padding: 0px 0px 0px 20px;
+  font-size: 2em;
+  /*border-bottom: 1px solid rgba(0, 0, 0, 0.14);*/
+}
+
+#menu li:last-child {
+  border-bottom: none;
+}
+
+
+
+#menu button {
+/*  font-family: 'Raleway';
+  src: local('Raleway-Bold'), url(./fonts/Raleway-Bold.ttf) format('truetype');*/
+	background: none;
+	padding: 0;
+	border: none;
+	color: white;
+	outline: 0;
+  font-weight: bold;
+}
+
+
+#menu.isopen {
+  -webkit-transform: none;
+          transform: none;
+}
+
+@media screen and (max-width: 420px) {
+  .menubar span {
+    font-size: 1.2em;
+  }
+}
+
+.logo {
+	position: absolute;
+	bottom: 0;
+	left: 0;
+}
+
+/*.dropdown{
+  display: inline-block;
+}*/
+
+.sidenav {
+
+
+/*  border-radius: 10px;
+  box-shadow: 2px 2px 5px rgba(0,0,0,0.5),
+            inset 5px 5px 8px rgba(0,0,0,0.5);*/
+  display: none;
+  background-color: #03308B;
+  width: 100%;
+  line-height: 2em;
+
+
+}
+
+
+
+.sidenav a, .dropdown-btn {
+  
+  outline: 0;
+  border: 0;
+  padding: 10px 0px 10px 50px;
+/*  font-family: 'Raleway';
+  src: local('Raleway'), url(./fonts/Raleway-Regular.ttf) format('truetype');*/
+  font-size: 20px;
+  color: white;
+  /*border: none;*/
+  width: 100px;
+  /*height:50px;*/
+  text-align: left;
+  transition: transform 100ms cubic-bezier(.55,.09,.68,.53);
+}
+
+.sidenav li a:hover {
+
+  font-weight: bold;
+  display: inline-block;
+  box-shadow: 0 8px 6px -6px black;
+  transform: translate(20px, 5px);
+  background-color:blue;
+  width: 100%;
+  text-decoration: none;
+
+}
+
+
+/* On mouse-over */
+.sidenav a:hover{ 
+  color: none;
+
+}
+
+
+
+/* Add an active class to the active dropdown button */
+.active {
+  color: red;
+
+}
+
+
