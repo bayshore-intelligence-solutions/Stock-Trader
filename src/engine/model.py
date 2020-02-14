@@ -1,6 +1,5 @@
 from typing import Tuple
 import silence_tensorflow
-import tensorflow
 import tensorflow.compat.v1 as tf
 from tensorflow.contrib import rnn
 from utils import (
@@ -78,6 +77,20 @@ class LstmRNN:
         self.targets = tf.placeholder(tf.float32, [None, self.input_size],
                                       name="targets")
 
+    @staticmethod
+    def _variable_on_device(name, shape, initializer, device='cuda', _id=0):
+        """
+        Declare a variable on device of `shape` and initialize
+        those with the `initializer`.
+        """
+        if device == 'cuda':
+            d = f'/gpu:{_id}'
+        else:
+            d = '/cpu:0'
+        with tf.device(d):
+            var = tf.get_variable(name, shape, initializer=initializer)
+        return var
+
     def _build_graph(self):
         # First get all the placeholders
         self._get_all_placeholders()
@@ -96,8 +109,39 @@ class LstmRNN:
 
           2. We can pass more/less than the sequence length.
         """
-        out, state = tf.nn.dynamic_rnn(cells, self.inputs,
-                                       dtype=tf.float32, scope="dynamic_rnn")
+        out, _ = tf.nn.dynamic_rnn(cells, self.inputs,
+                                   dtype=tf.float32, scope="dynamic_rnn")
+        # It returns the output of all the time_steps. However we need the
+        # output only from the second last time step. Second last because the
+        # output for the last timestep is [0.0, 0.0, 0.0 .... 0.0]. We need
+        # the last non-zero output
+
+        # For this we need to get the num_of_time_steps from the output and
+        # subtract 1 from it. We could have also wriiten self.time_steps - 1
+        # but that would not have been generic.
+
+        # Actual output => (batch_size, num_steps, lstm_size)
+        # This converts => (num_steps, batch_size, lstm_size)
+        # JUST LIKE THAT!!
+        out = tf.transpose(out, [1, 0, 2])
+
+        num_time_steps = int(out.get_shape()[0])
+        last_state = tf.gather(out, num_time_steps - 1, name="last_lstm_state")
+
+        # Now that we've got the last_state, we can add it to a linear layer for Regression.
+        W = LstmRNN._variable_on_device(
+            name='w',
+            shape=(self.lstm_size, self.input_size),
+            initializer=tf.truncated_normal_initializer(),
+        )
+        bias = LstmRNN._variable_on_device(
+            name='bias',
+            shape=(self.input_size,),
+            initializer=tf.constant_initializer(0.1),
+        )
+
+        self.pred = tf.matmul(last_state, W) + bias
+        print(self.pred)
 
 
 if __name__ == '__main__':
@@ -117,4 +161,3 @@ if __name__ == '__main__':
             tensorboard=conf.tensorboard,
             lstm_size=conf.lstm['size']
         )
-        print(model)
