@@ -56,13 +56,14 @@ class LstmRNN:
                f'type {self.__class__.__name__} running on ' \
                f'a Tensorflow session at {hex(id(self.sess))}'
 
-    def _one_rnn_cell(self):
+    def _one_rnn_cell(self, layer):
         """
         This create one RNN cell
         :return:
         """
         lstm_cell = rnn.LSTMCell(self.lstm_size,
-                                 state_is_tuple=True)
+                                 state_is_tuple=True,
+                                 name=f'LSTMCell_layer_{layer}')
         lstm_cell = rnn.DropoutWrapper(lstm_cell,
                                        output_keep_prob=self.keep_prob)
 
@@ -97,9 +98,9 @@ class LstmRNN:
 
         # Second, create multiple LSTM cells for all the layers
         cells = rnn.MultiRNNCell(
-            [self._one_rnn_cell() for _ in range(self.layers)],
+            [self._one_rnn_cell(l+1) for l in range(self.layers)],
             state_is_tuple=True
-        ) if self.layers > 1 else self._one_rnn_cell()
+        ) if self.layers > 1 else self._one_rnn_cell(1)
 
         # Wrap the all the cells into an RNN
         # We shall use dynamic_rnn so that
