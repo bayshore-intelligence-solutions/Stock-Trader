@@ -1,0 +1,28 @@
+---
+name: Stock Trader
+date: 2020-02-13
+type: 'many2one'
+root_path: &root /home/antpc/PycharmProjects/StockTrader
+tensorboard: True
+
+many2one:
+  lstm:
+    size:         128          # Iinternal shape of state variables inside the LSTM cell
+    time_step:     30          # Number of timesteps for each data points in LSTM
+
+  layers:
+    count:         1           # Number of layers in the network
+    dropout_rate:  0.0         # 1 - drop_out rate in LSTM cells
+
+  fit:
+    device:        cuda        # Device to build the model
+    epochs:        50          # Number of epochs
+    batch_size:    16          # Number of datapoints in the batch
+    optimizer:     adam        # Optimizer to use
+    tensorflow:    1           # Using tesnorflow 1/2
+    learning_rate: 0.01        # The initial learning rate
+
+data:
+  datapath:  !!python/object/apply:os.path.join [*root, data]   # Root data path
+  symbol:    V                                                  # Stock Symbol
+  cols: ["open", "close"]                                       # Columns used to train the model

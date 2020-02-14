@@ -6,7 +6,7 @@ from utils import warning_on_one_line
 import time
 
 
-np.random.seed(time.time())
+np.random.seed(42)
 BASE = Path('./../../').absolute()
 DATA = BASE.joinpath('data')
 
