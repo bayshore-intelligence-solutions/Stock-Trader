@@ -112,12 +112,9 @@ class LstmRNN:
         out, _ = tf.nn.dynamic_rnn(cells, self.inputs,
                                    dtype=tf.float32, scope="dynamic_rnn")
         # It returns the output of all the time_steps. However we need the
-        # output only from the second last time step. Second last because the
-        # output for the last timestep is [0.0, 0.0, 0.0 .... 0.0]. We need
-        # the last non-zero output
+        # output only from the last time step.
 
-        # For this we need to get the num_of_time_steps from the output and
-        # subtract 1 from it. We could have also wriiten self.time_steps - 1
+        # We could have also wriiten self.time_steps - 1
         # but that would not have been generic.
 
         # Actual output => (batch_size, num_steps, lstm_size)
