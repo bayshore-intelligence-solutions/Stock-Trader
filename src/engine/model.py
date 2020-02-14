@@ -140,8 +140,8 @@ class LstmRNN:
             initializer=tf.constant_initializer(0.1),
         )
 
-        self.pred = tf.matmul(last_state, W) + bias
-        print(self.pred)
+        self.pred = tf.add(tf.matmul(last_state, W, name='Wx'),
+                           bias, name='output')
 
 
 if __name__ == '__main__':
