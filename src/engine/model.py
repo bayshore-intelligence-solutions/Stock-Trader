@@ -111,7 +111,7 @@ class LstmRNN:
           2. We can pass more/less than the sequence length.
         """
         out, _ = tf.nn.dynamic_rnn(cells, self.inputs,
-                                   dtype=tf.float32, scope="dynamic_rnn")
+                                   dtype=tf.float32, scope="DyRNN")
         # It returns the output of all the time_steps. However we need the
         # output only from the last time step.
 
@@ -159,3 +159,4 @@ if __name__ == '__main__':
             tensorboard=conf.tensorboard,
             lstm_size=conf.lstm['size']
         )
+        print(model)

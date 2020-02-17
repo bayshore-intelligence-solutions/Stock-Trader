@@ -3,7 +3,6 @@ import pandas as pd
 from pathlib import Path
 import warnings
 from utils import warning_on_one_line
-import time
 
 
 np.random.seed(42)
@@ -91,8 +90,8 @@ class StockDataset:
 
 if __name__ == '__main__':
     visa = pd.read_csv(DATA.joinpath('visa.csv'))
-    master_card = pd.read_csv(DATA.joinpath('master_card.csv'))
-    dataset = StockDataset(stock_data=master_card, num_steps=30,
+    # master_card = pd.read_csv(DATA.joinpath('master_card.csv'))
+    dataset = StockDataset(stock_data=visa, num_steps=30,
                            cols=['close', 'open'],
                            test_ratio=0.2)
     data = dataset.generate_one_epoch()
