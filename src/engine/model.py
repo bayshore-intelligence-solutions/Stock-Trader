@@ -44,6 +44,7 @@ class LstmRNN:
         self.keep_prob = 1 - dropout_rate
         self.lstm_size = lstm_size
         self.isTraining = True
+        self.device = kwargs.get('device', 'cuda')
         if tensorboard:
             # If using tensorboard
             self.logdir = kwargs.get('logdir')
@@ -104,6 +105,8 @@ class LstmRNN:
             d = f'/gpu:{_id}'
         else:
             d = '/cpu:0'
+
+        print(d)
         with tf.device(d):
             var = tf.get_variable(name, shape, initializer=initializer)
         return var
@@ -137,21 +140,30 @@ class LstmRNN:
         # Actual output => (batch_size, num_steps, lstm_size)
         # This converts => (num_steps, batch_size, lstm_size)
         # JUST LIKE THAT!!
-        out = tf.transpose(out, [1, 0, 2])
 
+        # all_timesteps = tf.reshape(out, [-1, self.lstm_size])
+        # row_inds = tf.range(0, 16) * 30 + (30 - 1)
+        # partitions = tf.reduce_sum(tf.one_hot(row_inds, tf.shape(all_timesteps)[0], dtype='int32'), 0)
+        # last_timesteps = tf.dynamic_partition(all_timesteps, partitions, 2)  # (batch_size, n_dim)
+        # last_state = last_timesteps[1]
+
+        out = tf.transpose(out, [1, 0, 2])
         num_time_steps = int(out.get_shape()[0])
         last_state = tf.gather(out, num_time_steps - 1, name="last_lstm_state")
 
         # Now that we've got the last_state, we can add it to a linear layer for Regression.
+
         W = LstmRNN._variable_on_device(
             name='w',
             shape=(self.lstm_size, self.input_size),
             initializer=tf.truncated_normal_initializer(),
+            device=self.device
         )
         bias = LstmRNN._variable_on_device(
             name='bias',
             shape=(self.input_size,),
             initializer=tf.constant_initializer(0.1),
+            device=self.device
         )
 
         self.pred = tf.add(tf.matmul(last_state, W, name='Wx'),
@@ -173,6 +185,7 @@ if __name__ == '__main__':
             layers=conf.layers['count'],
             dropout_rate=conf.layers['dropout_rate'],
             tensorboard=conf.tensorboard,
-            lstm_size=conf.lstm['size']
+            lstm_size=conf.lstm['size'],
+            device=conf.ops['device']
         )
         print(model)

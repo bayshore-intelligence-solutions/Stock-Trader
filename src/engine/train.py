@@ -11,7 +11,6 @@ from pathlib import Path
 import pandas as pd
 from data import StockDataset
 from progress.bar import PixelBar
-from decimal import Decimal
 
 
 if not validate_tf_1_14_plus(tf.version.VERSION):
@@ -39,7 +38,8 @@ class Trainer:
                 layers=self.conf.layers['count'],
                 dropout_rate=self.conf.layers['dropout_rate'],
                 tensorboard=self.conf.tensorboard,
-                lstm_size=self.conf.lstm['size']
+                lstm_size=self.conf.lstm['size'],
+                device=self.conf.ops['device']
             )
 
             # Print all the trainable variables

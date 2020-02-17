@@ -15,7 +15,7 @@ many2one:
     dropout_rate:  0.0         # 1 - drop_out rate in LSTM cells
 
   fit:
-    device:        cuda        # Device to build the model
+    device:        cpu        # Device to build the model
     epochs:        50          # Number of epochs
     batch_size:    16          # Number of datapoints in the batch
     optimizer:     adam        # Optimizer to use
