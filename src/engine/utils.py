@@ -1,3 +1,4 @@
+import silence_tensorflow
 from tensorflow.compat.v1 import ConfigProto
 
 

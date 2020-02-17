@@ -8,6 +8,7 @@ from utils import (
 )
 from config import Config
 
+
 if not validate_tf_1_14_plus(tf.version.VERSION):
     raise ImportError('Tensorflow 1.14+ is only supported')
 
@@ -42,6 +43,7 @@ class LstmRNN:
         self.layers = layers
         self.keep_prob = 1 - dropout_rate
         self.lstm_size = lstm_size
+        self.isTraining = True
         if tensorboard:
             # If using tensorboard
             self.logdir = kwargs.get('logdir')
@@ -56,22 +58,36 @@ class LstmRNN:
                f'type {self.__class__.__name__} running on ' \
                f'a Tensorflow session at {hex(id(self.sess))}'
 
+    @property
+    def training(self):
+        return self.isTraining
+
+    @training.setter
+    def training(self, train):
+        self.isTraining = train
+
     def _one_rnn_cell(self, layer):
         """
         This create one RNN cell
-        :return:
+        :param layer: Mention the layer number
+        :return: LSTM cell with or without dropout
         """
         lstm_cell = rnn.LSTMCell(self.lstm_size,
                                  state_is_tuple=True,
                                  name=f'LSTMCell_layer_{layer}')
+        kp = self.keep_prob
+        if not self.training:
+            print("Setting keep_prob = 1 for testing!!")
+            kp = 1.0
+
         lstm_cell = rnn.DropoutWrapper(lstm_cell,
-                                       output_keep_prob=self.keep_prob)
+                                       output_keep_prob=kp)
 
         return lstm_cell
 
     def _get_all_placeholders(self):
-        self.learning_rate = tf.placeholder(tf.float32, None,
-                                            name="learning_rate")
+        # self.learning_rate = tf.placeholder(tf.float32, None,
+        #                                     name="learning_rate")
         self.inputs = tf.placeholder(tf.float32,
                                      [None, self.time_steps, self.input_size],
                                      name="inputs")
@@ -98,7 +114,7 @@ class LstmRNN:
 
         # Second, create multiple LSTM cells for all the layers
         cells = rnn.MultiRNNCell(
-            [self._one_rnn_cell(l+1) for l in range(self.layers)],
+            [self._one_rnn_cell(l + 1) for l in range(self.layers)],
             state_is_tuple=True
         ) if self.layers > 1 else self._one_rnn_cell(1)
 

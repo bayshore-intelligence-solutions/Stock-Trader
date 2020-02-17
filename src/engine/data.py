@@ -3,6 +3,7 @@ import pandas as pd
 from pathlib import Path
 import warnings
 from utils import warning_on_one_line
+from tqdm import tqdm
 
 
 np.random.seed(42)
@@ -28,10 +29,23 @@ class StockDataset:
         assert self.time_steps == self.X_train.shape[1] == self.X_test.shape[1]
 
         # Batch Calculations
-        num_batches = self.X_train.shape[0] // self.batch_size
-        if num_batches * self.batch_size < self.X_train.shape[0]:
-            num_batches += 1
-        self.rbi = np.arange(num_batches)
+        self.num_batches = self.X_train.shape[0] // self.batch_size
+        if self.num_batches * self.batch_size < self.X_train.shape[0]:
+            self.num_batches += 1
+
+        self.rbi = np.arange(self.num_batches)
+
+    @property
+    def size(self, train=True):
+        if train:
+            return {
+                'X': self.X_train.shape,
+                'y': self.y_train.shape
+            }
+        return {
+            'X': self.X_test.shape,
+            'y': self.y_test.shape
+        }
 
     def _prepare_data(self, data, cols, normalize, test_ratio):
         # Get the input shape
@@ -77,11 +91,11 @@ class StockDataset:
             'y_test': self.y_test
         }
 
-    def generate_one_epoch(self):
+    def generate_for_one_epoch(self):
         np.random.shuffle(self.rbi)
         for i in self.rbi:
-            batch_X = self.X_train[i * self.batch_size: (i+1) * self.batch_size]
-            batch_y = self.y_train[i * self.batch_size: (i+1) * self.batch_size]
+            batch_X = self.X_train[i * self.batch_size: (i + 1) * self.batch_size]
+            batch_y = self.y_train[i * self.batch_size: (i + 1) * self.batch_size]
 
             # Assert all the batches have same number of `time_steps`
             assert set(map(len, batch_X)) == {self.time_steps}
@@ -94,9 +108,9 @@ if __name__ == '__main__':
     dataset = StockDataset(stock_data=visa, num_steps=30,
                            cols=['close', 'open'],
                            test_ratio=0.2)
-    data = dataset.generate_one_epoch()
-
-    for batch_X, batch_y in data:
-        print(batch_X.shape)
-        print(batch_y.shape)
-        break
+    data = dataset.generate_for_one_epoch()
+    print(dataset.size['X'][0] // 16)
+    count = 0
+    for batch_X, batch_y in tqdm(data, total=2143, ascii=True):
+        count += 1
+    print(count)
