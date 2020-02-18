@@ -123,6 +123,7 @@ class Trainer:
             # Returns an iterator only for training data
             data = dataset.generate_for_one_epoch()
             total_training_loss = 0.0
+            self.model.training = True
             with PixelBar(f'Epoch {epoch+1}: ',
                           max=NUM_BATCHES) as bar:
                 for batch_X, batch_y in data:
@@ -145,7 +146,18 @@ class Trainer:
                     bar.next()
                     total_training_loss += train_loss[0]
 
+                # Check the performance on the validation dataset
+                test_data_feed = {
+                    self.model.inputs: dataset.X_test,
+                    self.model.targets: dataset.y_test
+                }
+                self.model.training = False  # For dropouts
+                test_loss, test_pred = self.model.sess.run(
+                    [self.test_loss, self.model.pred],
+                    feed_dict=test_data_feed
+                )
                 print(f'\n\nEpoch: {epoch+1}, Training Loss: {total_training_loss/NUM_BATCHES}\n')
+                print(f'\n\nEpoch: {epoch+1}, Validation Loss: {test_loss}\n')
 
 
 if __name__ == '__main__':

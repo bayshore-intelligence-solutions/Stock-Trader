@@ -8,7 +8,6 @@ from utils import (
 )
 from config import Config
 
-
 if not validate_tf_1_14_plus(tf.version.VERSION):
     raise ImportError('Tensorflow 1.14+ is only supported')
 
@@ -129,8 +128,12 @@ class LstmRNN:
 
           2. We can pass more/less than the sequence length.
         """
-        out, _ = tf.nn.dynamic_rnn(cells, self.inputs,
-                                   dtype=tf.float32, scope="DyRNN")
+        # self.inputs = tf.transpose(self.inputs, perm=[1, 0, 2])
+        out, states = tf.nn.dynamic_rnn(cells, self.inputs,
+                                       dtype=tf.float32, scope="DyRNN",
+                                       time_major=False)
+
+        # output[:, ts-1, :]
         # It returns the output of all the time_steps. However we need the
         # output only from the last time step.
 
@@ -147,10 +150,16 @@ class LstmRNN:
         # last_timesteps = tf.dynamic_partition(all_timesteps, partitions, 2)  # (batch_size, n_dim)
         # last_state = last_timesteps[1]
 
-        out = tf.transpose(out, [1, 0, 2])
-        num_time_steps = int(out.get_shape()[0])
-        last_state = tf.gather(out, num_time_steps - 1, name="last_lstm_state")
+        # out = tf.transpose(out, [1, 0, 2])
+        # num_time_steps = int(out.get_shape()[0])
+        # last_state = tf.gather(out, num_time_steps - 1, name="last_lstm_state")
 
+        last_state = states.h
+
+
+        # last_state = tf.unstack(outputs, axis=0)
+        # last_state = last_state[-1]
+        # last_state = tf.transpose(last_state, perm=[0, 1, 2])
         # Now that we've got the last_state, we can add it to a linear layer for Regression.
 
         W = LstmRNN._variable_on_device(
