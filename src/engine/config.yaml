@@ -26,3 +26,4 @@ data:
   datapath:  !!python/object/apply:os.path.join [*root, data]   # Root data path
   symbol:    V                                                  # Stock Symbol
   cols: ["open", "close"]                                       # Columns used to train the model
+  validation_ratio: 0.2

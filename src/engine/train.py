@@ -54,9 +54,9 @@ class Trainer:
                                                    self.model.targets,
                                                    name="train_loss")
 
-            self.test_loss = Trainer.squared_loss(self.model.pred,
+            self.val_loss = Trainer.squared_loss(self.model.pred,
                                                   self.model.targets,
-                                                  name='test_loss')
+                                                  name='val_loss')
 
             self.optim = Trainer._get_optimizer(self.conf.ops['optimizer'],
                                                 self.conf.ops['learning_rate'])
@@ -147,23 +147,21 @@ class Trainer:
                     total_training_loss += train_loss[0]
 
                 # Check the performance on the validation dataset
-                test_data_feed = {
-                    self.model.inputs: dataset.X_test,
-                    self.model.targets: dataset.y_test
+                val_data_feed = {
+                    self.model.inputs: dataset.X_val,
+                    self.model.targets: dataset.y_val
                 }
                 self.model.training = False  # For dropouts
-                test_loss, test_pred = self.model.sess.run(
-                    [self.test_loss, self.model.pred],
-                    feed_dict=test_data_feed
+                val_loss, val_pred = self.model.sess.run(
+                    [self.val_loss, self.model.pred],
+                    feed_dict=val_data_feed
                 )
-                print(f'\n\nEpoch: {epoch+1}, Training Loss: {total_training_loss/NUM_BATCHES}\n')
-                print(f'\n\nEpoch: {epoch+1}, Validation Loss: {test_loss}\n')
+                print(f'\n\nEpoch: {epoch+1}, Training Loss: {total_training_loss/NUM_BATCHES}')
+                print(f'Epoch: {epoch+1}, Validation Loss: {val_loss}\n')
 
 
 if __name__ == '__main__':
-    visa = pd.read_csv(DATA.joinpath('visa.csv'))
-    # master_card = pd.read_csv(DATA.joinpath('master_card.csv'))
-    dataset = StockDataset(stock_data=visa, num_steps=30,
-                           cols=['close', 'open'],
-                           test_ratio=0.2)
+
+    conf = Config('config.yaml')
+    dataset = StockDataset(config=conf)
     trainer = Trainer(dataset, 'config.yaml')
