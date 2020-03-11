@@ -17,4 +17,5 @@ def validate_tf_1_14_plus(version: str) -> bool:
 
 def get_tensorflow_config():
     run_config = ConfigProto()
-    run_config.gpu_options.allow_growth = True
+    run_config.gpu_options.allow_growth = False
+    run_config.gpu_options.per_process_gpu_memory_fraction = 1

@@ -1,11 +1,13 @@
 import yaml
+from pathlib import Path
+
 
 class Config:
 
     def __init__(self, config):
         with open(config, 'r') as stream:
             self._config = yaml.load(stream,
-                                    Loader=yaml.CLoader)
+                                     Loader=yaml.CLoader)
             if self._config['type'] not in ['many2one',
                                             'many2many']:
                 raise NotImplementedError('Unknown LSTM architecture!!')
@@ -44,7 +46,13 @@ class Config:
     def tensorboard(self):
         return self._config['tensorboard']
 
+    @property
+    def root(self):
+        return Path(self._config['root_path']).joinpath('src').joinpath('engine')
+
+
 # if __name__ == '__main__':
 #     conf = Config('config.yaml')
 #     print(conf.arch)
 #     print(conf.data)
+#     print(conf.root)

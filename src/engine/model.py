@@ -40,15 +40,18 @@ class LstmRNN:
         self.sess = sess
         self.time_steps, self.input_size = cell_dim
         self.layers = layers
-        self.keep_prob = 1 - dropout_rate
+        self.keep_prob = tf.placeholder(tf.float32, None, name="keep_prob")
+        # self.keep_prob = 1 - dropout_rate
         self.lstm_size = lstm_size
-        self.isTraining = True
+        # self.isTraining = True
         self.device = kwargs.get('device', 'cuda')
         if tensorboard:
             # If using tensorboard
             self.logdir = kwargs.get('logdir')
         else:
             self.logdir = None
+
+        # self.batchSize = kwargs.get('batch_size', 16)
 
         self._build_graph()
 
@@ -58,13 +61,13 @@ class LstmRNN:
                f'type {self.__class__.__name__} running on ' \
                f'a Tensorflow session at {hex(id(self.sess))}'
 
-    @property
-    def training(self):
-        return self.isTraining
+    # @property
+    # def training(self):
+    #     return self.isTraining
 
-    @training.setter
-    def training(self, train):
-        self.isTraining = train
+    # @training.setter
+    # def training(self, train):
+    #     self.isTraining = train
 
     def _one_rnn_cell(self, layer):
         """
@@ -72,17 +75,16 @@ class LstmRNN:
         :param layer: Mention the layer number
         :return: LSTM cell with or without dropout
         """
+
         lstm_cell = rnn.LSTMCell(self.lstm_size,
                                  state_is_tuple=True,
                                  name=f'LSTMCell_layer_{layer}')
-        kp = self.keep_prob
-        if not self.training:
-            print("Setting keep_prob = 1 for testing!!")
-            kp = 1.0
-
+        # kp = self.keep_prob
+        # if not self.training:
+        #     print("Setting keep_prob = 1 for testing!!")
+        #     kp = 1.0
         lstm_cell = rnn.DropoutWrapper(lstm_cell,
-                                       output_keep_prob=kp)
-
+                                       output_keep_prob=self.keep_prob)
         return lstm_cell
 
     def _get_all_placeholders(self):
@@ -105,7 +107,7 @@ class LstmRNN:
         else:
             d = '/cpu:0'
 
-        print(d)
+        # print(d)
         with tf.device(d):
             var = tf.get_variable(name, shape, initializer=initializer)
         return var
@@ -120,6 +122,9 @@ class LstmRNN:
             state_is_tuple=True
         ) if self.layers > 1 else self._one_rnn_cell(1)
 
+        batchSize = tf.shape(self.inputs)[0]
+        initial_state = cells.zero_state(batch_size=batchSize, dtype=tf.float32)
+
         # Wrap the all the cells into an RNN
         # We shall use dynamic_rnn so that
         """
@@ -128,10 +133,12 @@ class LstmRNN:
 
           2. We can pass more/less than the sequence length.
         """
+
         # self.inputs = tf.transpose(self.inputs, perm=[1, 0, 2])
         out, states = tf.nn.dynamic_rnn(cells, self.inputs,
-                                       dtype=tf.float32, scope="DyRNN",
-                                       time_major=False)
+                                        dtype=tf.float32, scope="dynamic_rnn",
+                                        initial_state=initial_state,
+                                        time_major=False)
 
         # output[:, ts-1, :]
         # It returns the output of all the time_steps. However we need the
@@ -150,33 +157,32 @@ class LstmRNN:
         # last_timesteps = tf.dynamic_partition(all_timesteps, partitions, 2)  # (batch_size, n_dim)
         # last_state = last_timesteps[1]
 
-        # out = tf.transpose(out, [1, 0, 2])
-        # num_time_steps = int(out.get_shape()[0])
-        # last_state = tf.gather(out, num_time_steps - 1, name="last_lstm_state")
+        out = tf.transpose(out, [1, 0, 2])
+        num_time_steps = int(out.get_shape()[0])
+        last_state = tf.gather(out, num_time_steps - 1, name="last_lstm_state")
 
-        last_state = states.h
-
+        # last_state = states.h
 
         # last_state = tf.unstack(outputs, axis=0)
         # last_state = last_state[-1]
         # last_state = tf.transpose(last_state, perm=[0, 1, 2])
         # Now that we've got the last_state, we can add it to a linear layer for Regression.
 
-        W = LstmRNN._variable_on_device(
-            name='w',
-            shape=(self.lstm_size, self.input_size),
-            initializer=tf.truncated_normal_initializer(),
-            device=self.device
-        )
-        bias = LstmRNN._variable_on_device(
-            name='bias',
-            shape=(self.input_size,),
-            initializer=tf.constant_initializer(0.1),
-            device=self.device
-        )
-
-        self.pred = tf.add(tf.matmul(last_state, W, name='Wx'),
-                           bias, name='output')
+        with tf.name_scope('Linear'):
+            W = LstmRNN._variable_on_device(
+                name='l_w',
+                shape=(self.lstm_size, self.input_size),
+                initializer=tf.truncated_normal_initializer(),
+                device=self.device
+            )
+            bias = LstmRNN._variable_on_device(
+                name='l_b',
+                shape=(self.input_size,),
+                initializer=tf.constant_initializer(0.1),
+                device=self.device
+            )
+            self.pred = tf.add(tf.matmul(last_state, W, name='Wx'),
+                               bias, name='output')
 
 
 if __name__ == '__main__':
@@ -195,6 +201,7 @@ if __name__ == '__main__':
             dropout_rate=conf.layers['dropout_rate'],
             tensorboard=conf.tensorboard,
             lstm_size=conf.lstm['size'],
-            device=conf.ops['device']
+            device=conf.ops['device'],
+            batch_size=conf.ops['batch_size']
         )
         print(model)

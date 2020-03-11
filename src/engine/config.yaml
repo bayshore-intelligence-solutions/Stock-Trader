@@ -12,7 +12,7 @@ many2one:
 
   layers:
     count:         1           # Number of layers in the network
-    dropout_rate:  0.0         # 1 - drop_out rate in LSTM cells
+    dropout_rate:  0.2         # 1 - drop_out rate in LSTM cells
 
   fit:
     device:        cuda        # Device to build the model
