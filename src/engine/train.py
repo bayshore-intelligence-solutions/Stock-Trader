@@ -8,7 +8,7 @@ from utils import (
     get_tensorflow_config
 )
 from pathlib import Path
-import pandas as pd
+import time
 from data import StockDataset
 from progress.bar import PixelBar
 
@@ -19,7 +19,7 @@ BASE = Path('./../../').absolute()
 DATA = BASE.joinpath('data')
 
 
-class Trainer:
+class Train:
     VALID_LOSS = None
 
     def __init__(self, dataset, config_file):
@@ -45,7 +45,7 @@ class Trainer:
             )
 
             # Print all the trainable variables
-            Trainer._list_all_trainables()
+            Train._list_all_trainables()
 
             # Define Loss, Optimizer and Learning Rate
 
@@ -54,16 +54,16 @@ class Trainer:
             # be accumulated.
 
             with tf.name_scope('squared_loss'):
-                self.train_loss = Trainer.squared_loss(self.model.pred,
-                                                       self.model.targets,
-                                                       name="train_loss")
-                self.val_loss = Trainer.squared_loss(self.model.pred,
+                self.train_loss = Train.squared_loss(self.model.pred,
                                                      self.model.targets,
-                                                     name='val_loss')
+                                                     name="train_loss")
+                self.val_loss = Train.squared_loss(self.model.pred,
+                                                   self.model.targets,
+                                                   name='val_loss')
 
             with tf.name_scope('train'):
-                self.optim = Trainer._get_optimizer(self.conf.ops['optimizer'],
-                                                    self.conf.ops['learning_rate'])
+                self.optim = Train._get_optimizer(self.conf.ops['optimizer'],
+                                                  self.conf.ops['learning_rate'])
                 self.optim = self.optim.minimize(self.train_loss, name='optim_loss')
                 self.train(dataset)
 
@@ -113,7 +113,9 @@ class Trainer:
             self._saver = tf.train.Saver(max_to_keep=1)  # Because we rename every checkpoint
         return self._saver
 
-    def save_model(self, path: Path, global_step: int, val_loss: float, epoch: int, tol: float) -> bool:
+    def save_model(self, path: Path, global_step: int,
+                   val_loss: float, epoch: int,
+                   tol: float, startTime: str) -> bool:
         """
         This saves the model checkpoint by automatically checking
         if the model has improves from the previous best by a tolerance amount
@@ -124,18 +126,19 @@ class Trainer:
         :param val_loss: Current Validation Loss
         :param epoch: Current Epoch
         :param tol: Tolerance level/Minimum performance improvement from the previous
+        :param startTime: Start time since epoch
         :return: True if the model is saved else False
         """
         if not path.joinpath('checkpoints').is_dir():
             raise IOError('Directoy does not exist')
 
-        PATH = path.joinpath("checkpoints")
+        PATH = path.joinpath("checkpoints").joinpath(startTime)
         NAME = f"Epoch_{epoch}_ValLoss_{val_loss}"
 
-        if Trainer.VALID_LOSS is None:
+        if Train.VALID_LOSS is None:
             prev_val_loss = -1.0
         else:
-            prev_val_loss = Trainer.VALID_LOSS
+            prev_val_loss = Train.VALID_LOSS
 
         if prev_val_loss != -1.0 and prev_val_loss - tol < val_loss:
             # Validation loss has not improved
@@ -143,8 +146,8 @@ class Trainer:
 
         ckpt_file = PATH.joinpath(NAME)
         self.saver.save(sess=self.model.sess, save_path=ckpt_file,
-                        global_step=global_step, write_meta_graph=False)
-        Trainer.val_loss = val_loss
+                        global_step=global_step)
+        Train.val_loss = val_loss
         return True
 
     def train(self, dataset: StockDataset):
@@ -156,7 +159,7 @@ class Trainer:
 
         # Initialize all the DAG variables
         tf.global_variables_initializer().run()
-
+        start_time = str(int(time.time()))
         global_step = 0
         EPOCHS = self.conf.ops['epochs']
         NUM_BATCHES = dataset.num_batches
@@ -209,11 +212,11 @@ class Trainer:
 
                 print(f'\n\nEpoch: {epoch + 1}, Training Loss: {total_training_loss / NUM_BATCHES}')
                 print(f'Epoch: {epoch + 1}, Validation Loss: {val_loss}\n')
-                if not self.save_model(conf.root, global_step, val_loss, epoch, 0.00001):
-                    print(f'Validation loss has not improved from the previous value {Trainer.VALID_LOSS}')
+                if not self.save_model(conf.root, global_step, val_loss, epoch+1, 0.00001, start_time):
+                    print(f'Validation loss has not improved from the previous value {Train.VALID_LOSS}')
 
 
 if __name__ == '__main__':
     conf = Config('config.yaml')
     dataset = StockDataset(config=conf)
-    trainer = Trainer(dataset, 'config.yaml')
+    trainer = Train(dataset, 'config.yaml')

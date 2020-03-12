@@ -16,7 +16,7 @@ many2one:
 
   fit:
     device:        cuda        # Device to build the model
-    epochs:        50          # Number of epochs
+    epochs:        20          # Number of epochs
     batch_size:    16          # Number of datapoints in the batch
     optimizer:     adam        # Optimizer to use
     tensorflow:    1           # Using tesnorflow 1/2

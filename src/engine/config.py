@@ -3,11 +3,13 @@ from pathlib import Path
 
 
 class Config:
+    ROOT = None
 
     def __init__(self, config):
         with open(config, 'r') as stream:
             self._config = yaml.load(stream,
                                      Loader=yaml.CLoader)
+            Config.ROOT = Path(self._config['root_path']).joinpath('src').joinpath('engine')
             if self._config['type'] not in ['many2one',
                                             'many2many']:
                 raise NotImplementedError('Unknown LSTM architecture!!')
@@ -49,7 +51,6 @@ class Config:
     @property
     def root(self):
         return Path(self._config['root_path']).joinpath('src').joinpath('engine')
-
 
 # if __name__ == '__main__':
 #     conf = Config('config.yaml')

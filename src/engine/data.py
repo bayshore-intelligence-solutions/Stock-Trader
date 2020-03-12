@@ -19,7 +19,7 @@ class StockDataset:
 
         stock_data = pd.read_csv(Path(datapath).joinpath(symbol))
         cols = config.data['cols']
-
+        self.nCols = len(cols)
         self.time_steps = config.lstm['time_step']
         normalize = kwargs.get('normalize', True)
         validation_ratio = config.data['validation_ratio']
@@ -52,6 +52,33 @@ class StockDataset:
             'y': self.y_val.shape
         }
 
+    @staticmethod
+    def prepare_for_test_single(data: pd.DataFrame, **kwargs):
+        """
+        Used to prepare the data for the testing purpose
+        :param data: pd.DataFrame
+        :return:
+        """
+        nSeq, nCols = data.shape
+
+        # # Ensure the sequence length is correct
+        # assert nSeq == self.time_steps
+        # # Ensure the input size is correct
+        # assert nCols == self.nCols
+
+        normalize = kwargs.get('normalize', True)
+        seq = data.values
+        if normalize:
+            seq = StockDataset._normalize(seq, nCols)
+        return np.expand_dims(seq[0:-1], axis=0), np.expand_dims(seq[-1], axis=0)
+
+    @staticmethod
+    def _normalize(seq: np.ndarray, input_shape: int):
+        for i in range(input_shape):
+            s = seq[1:, i] / seq[:-1, i] - 1.0
+            seq[:, i] = np.append([0.0], s)
+        return seq
+
     def _prepare_data(self, data, cols, normalize, validation_ratio):
         # Get the input shape
         input_shape = len(cols)
@@ -62,9 +89,7 @@ class StockDataset:
         # Normalize the data...
         # Note: This is a time series normalization
         if normalize:
-            for i in range(input_shape):
-                s = seq[1:, i] / seq[:-1, i] - 1.0
-                seq[:, i] = np.append([0.0], s)
+            seq = StockDataset._normalize(seq, input_shape)
 
         # Split into group of num_steps
         X = np.array([seq[i: i + self.time_steps]
@@ -107,6 +132,13 @@ class StockDataset:
             yield batch_X, batch_y
 
 
+if __name__ == '__main__':
+    import yfinance as yf
+    data = yf.download('V', period="2d", interval="1m", threads=1)
+    df = data.tail(31)[["Open", "Close"]]
+    X, y = StockDataset.prepare_for_test_single(df)
+    print(X.shape)
+    print(y.shape)
 # if __name__ == '__main__':
 #     from config import Config
 #     conf = Config('config.yaml')
