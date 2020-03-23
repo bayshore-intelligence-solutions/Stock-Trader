@@ -1,9 +1,8 @@
 import React, { Component } from "react";
-// import ReactDOM from 'react-dom'; 
 import BootstrapTable from "react-bootstrap-table-next";
 import "bootstrap/dist/css/bootstrap.min.css";
-import filterFactory, { dateFilter} from 'react-bootstrap-table2-filter';
 import paginationFactory from 'react-bootstrap-table2-paginator';
+// import filterFactory, { dateFilter} from 'react-bootstrap-table2-filter';
 
 
 class Table extends Component {
@@ -28,13 +27,14 @@ class Table extends Component {
 
   }
   
+  
   render() {
 
     const columns= [
       {
         dataField: "Date",
         text: "Date",
-        filter: dateFilter()
+        // filter: dateFilter()
       },
       {
         dataField: "Open",
@@ -61,17 +61,19 @@ class Table extends Component {
         text: "Volume",
       }
     ]
-    return (  
-	    <div className="dataframe">
-			
+    return ( 
+    	<div>
+    		<div className="title"> 
+    		<h1>{this.props.name}</h1>
+    		</div>
+		    <div className="dataframe">
+				
 		    	<BootstrapTable keyField="Date"  
-		    					data={this.state.posts} 
-		    					columns={columns} 
-		    					filter={ filterFactory() }
-		    					filterPosition="bottom"
-		    					pagination={ paginationFactory() }
-		    	/>
-		    
+			    					data={this.state.posts} 
+			    					columns={columns}
+                    pagination={ paginationFactory()} 
+			    	/>
+			</div>
 		</div>
     );
   }

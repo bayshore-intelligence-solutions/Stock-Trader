@@ -1,6 +1,8 @@
 import React, { Component } from "react";
 import {Link} from 'react-router-dom';
 
+
+
 // import { Dropdown, DropdownToggle, DropdownMenu, DropdownItem } from 'reactstrap'
 
 
@@ -65,8 +67,8 @@ class MenuLinks extends Component {
               <li>GOOG</li>
             </Link>*/}
 
-             <li><Link to="/AAPL">AAPL</Link></li>
-             <li><Link to="/GOOG">GOOG</Link></li>
+             <li><Link onClick = {this.props.re} to="/AAPL">AAPL</Link></li>
+             <li><Link onClick = {this.props.re} to="/GOOG">GOOG</Link></li>
           </ul>
         </div>
 
@@ -91,33 +93,65 @@ class Menu extends React.Component {
   componentWillUnmount() {
     document.removeEventListener('click', this._handleDocumentClick, false);
   }
-  _handleDocumentClick(e) {
-    if (!this.refs.root.contains(e.target) && this.state.isOpen === true) {
-      this.setState({
-      isOpen: false
-    });
-    };
-  }
-  _menuToggle(e) {
-    e.stopPropagation();
+
+ _handleDocumentClick(e) {
+  if (!this.refs.root.contains(e.target) && this.state.isOpen === true) {
     this.setState({
-      isOpen: !this.state.isOpen
-    });
+    isOpen: false
+  });
+  };
+}
+_menuToggle(e) {
+      console.log("part4:",this.state.isOpen);
+
+  // var class_exist = document.getElementsByClassName('recharts-surface');
+  // console.log("===============================>",class_exist.length);
+  // if (class_exist.length>0)
+  
+  if (this.state.isOpen === false) {
+    try{
+      // document.querySelector('.recharts-surface').style.cssText = "width:800px !important; right:210px; position:absolute;transition: left 0.5s linear, margin-left 0.5s ease-out";
+      console.log("part1"); 
+      // document.querySelector('.recharts-wrapper').style.cssText = "width:800px !important;left:190px !important; position:absolute;transition: transform 500ms; ";
+      // document.querySelector('.hambclicker').style.left="210px";
+
+    }
+    catch(err) {
+      console.log('part3',err);
+      document.querySelector('.hambclicker').style.left="210px";
+
+    }
+
+ 
   }
+  else{
+    document.querySelector('.recharts-wrapper').style.cssText = "position:absolute;left:190px !important; transform: scaleX(1.10) scaleY(1.3) translateX(-15%);transition: transform 1s";
+    document.querySelector('.hambclicker').style.left="8px";
+    
+    console.log("part2"); 
+ 
+  }
+
+  e.stopPropagation();
+  this.setState({
+    isOpen: !this.state.isOpen
+  });
+}
+
+
   render() {
     let menuStatus = this.state.isOpen ? 'isopen' : '';
 
     return (
       <div ref="root">
-        <div className="menubar">
+        <div className="menubar2">
           <div className="hambclicker" onClick={ this._menuToggle }></div>
           <div id="hambmenu" className={ menuStatus }><span></span><span></span><span></span><span></span></div>
-          <div className="title">
+{/*          <div className="title">
             <span>{ this.props.title }</span>
-          </div>
+          </div>*/}
         </div>
-        <MenuLinks menuStatus={ menuStatus }/>
-        
+        <MenuLinks re = {this.props.up} menuStatus={ menuStatus }/>
       </div>
     )
   }

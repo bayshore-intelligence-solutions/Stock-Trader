@@ -2,6 +2,11 @@
   font-family: 'Roboto';
   src: local('Roboto'), url(./fonts/Roboto Regular.ttf) format('truetype');
 }
+
+#root {
+  white-space: pre;
+}
+
 .App {
   font-family: sans-serif;
   text-align: center;
@@ -12,9 +17,10 @@
 }
 
 .dataframe {
-	padding-top: 7%;
-	padding-right: 5%;
-  float: right;
+	padding-top: 2%;
+	padding-right: 2%;
+  padding-left: 12%;
+  float: center;
 }
 
 thead {
@@ -31,6 +37,7 @@ td {
 
 .filter-label{
 	display: block;
+  
 }
 
 .react-bs-table-sizePerPage-dropdown {
@@ -47,7 +54,7 @@ body {
   box-sizing: border-box;
 }
 
-.menubar {
+/*.menubar {
   display: block;
   height: 60px;
   background-color: #03308B ;
@@ -64,7 +71,7 @@ body {
   font-weight: 300;
   font-size: 3em;
   line-height: 50px;
-}
+}*/
 
 #hambmenu {
   position: relative;
@@ -81,7 +88,7 @@ body {
   width: 100%;
   vertical-align: middle;
   margin: 20px 0 0 15px;
-  background: white;
+  background: #03308B;
   border-radius: 8px;
   opacity: 1;
   left: 0;
@@ -119,17 +126,17 @@ body {
   top: 18px;
   width: 0%;
   left: 50%;
-  opacity: 0;
+  opacity: 1;
 }
 
 #hambmenu.isopen span:nth-child(2) {
-  -webkit-transform: rotate(45deg);
-          transform: rotate(45deg);
+  -webkit-transform: translate(210px, 0px) rotate(45deg);
+          transform: translate(210px, 0px) rotate(45deg);
 }
 
 #hambmenu.isopen span:nth-child(3) {
-  -webkit-transform: rotate(-45deg);
-          transform: rotate(-45deg);
+  -webkit-transform: translate(210px, 0px) rotate(-45deg);
+          transform: translate(210px, 0px) rotate(-45deg);
 }
 
 #hambmenu.isopen span:nth-child(4) {
@@ -143,19 +150,19 @@ body {
   display: flex;
   flex-direction: column;
   position: absolute;
-  height: calc(100vh - 60px);
+  height: calc(100vh);
   width: 210px;
-  background-color: #03308B ;
+  background-color: #03308B;
   -webkit-transform: translateX(-100%);
           transform: translateX(-100%);
-  -webkit-transition: -webkit-transform 300ms;
-  transition: -webkit-transform 300ms;
-  transition: transform 300ms;
-  transition: transform 300ms, -webkit-transform 300ms;
+  -webkit-transition: -webkit-transform 600ms;
+  transition: -webkit-transform 600ms;
+  transition: transform 600ms;
+  transition: transform 600ms, -webkit-transform 600ms;
 }
 #menu ul {
 
-  margin-top: 0px;
+  margin-top: 40px;
   padding: 0px;
   color: white;
   list-style-type: none;
@@ -209,16 +216,10 @@ body {
 }*/
 
 .sidenav {
-
-
-/*  border-radius: 10px;
-  box-shadow: 2px 2px 5px rgba(0,0,0,0.5),
-            inset 5px 5px 8px rgba(0,0,0,0.5);*/
   display: none;
   background-color: #03308B;
   width: 100%;
   line-height: 2em;
-
 
 }
 
@@ -262,9 +263,67 @@ body {
 
 
 /* Add an active class to the active dropdown button */
-.active {
+.sidenav.active {
   color: red;
 
 }
 
 
+.chart {
+  padding-top: 170px;
+  
+}
+
+.title {
+  color:#03308B;
+  text-align: center;
+
+}
+
+.recharts-wrapper {
+  left:190px;
+  animation: fadein 2s;
+  -moz-animation: fadein 2s; /* Firefox */
+  -webkit-animation: fadein 2s; /* Safari and Chrome */
+  -o-animation: fadein 2s; /* Opera */
+  /*position: relative;*/
+}
+
+/*.recharts-surface {
+  left:210px;
+  position: relative;
+}*/
+
+
+@keyframes fadein {
+    from {
+        opacity:0;
+    }
+    to {
+        opacity:1;
+    }
+}
+@-moz-keyframes fadein { /* Firefox */
+    from {
+        opacity:0;
+    }
+    to {
+        opacity:1;
+    }
+}
+@-webkit-keyframes fadein { /* Safari and Chrome */
+    from {
+        opacity:0;
+    }
+    to {
+        opacity:1;
+    }
+}
+@-o-keyframes fadein { /* Opera */
+    from {
+        opacity:0;
+    }
+    to {
+        opacity: 1;
+    }
+}

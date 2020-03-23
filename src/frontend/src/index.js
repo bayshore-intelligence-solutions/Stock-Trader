@@ -1,36 +1,126 @@
 import React, { Component } from "react";
 import ReactDOM from 'react-dom'; 
-import Menu  from "./menu.js"
+import Menu  from "./menu.js";
+import Chart from "./chart.js";
 import Table from "./table.js"
 import "./styless.css";
-import {BrowserRouter as Router,Route} from 'react-router-dom';
+import Button from './Button.js';
+import './Button.css';
+import {Router,Route} from 'react-router-dom';
+import createBrowserHistory from 'history/createBrowserHistory';
+// import {Switch} from 'react-router'; 
 
-class App extends Component {  
+ 
 
-  // triggerTable(sym){
-  //   <Table name = {sym}/>
-  // }
-  render() {
-    // var tableData = this.triggerTable("AAPL")
-    return (  
-      <Router>
-        <div>
-          <Menu title='Stock Trader' />
-          {/*<Switch>*/}
-            {/* For Apple*/}
-            <Route path="/AAPL"  exact
-              render={(props) => <Table {...props} name="AAPL"/>}  
-            />
-            {/* For Google */}
-            <Route path="/GOOG"  
-              render={(props) => <Table {...props} name="GOOG"/>}
-            />
-          {/*</Switch>*/}
-        </div>
-      </Router>
-    );
-  }
+const history = createBrowserHistory();
+const googleRoutes = [
+    {
+        id:0,
+        routes:"GOOG/Table"
+    },
+    {
+        id:1,
+        routes:"GOOG/Graph"
+    }
+]
+
+ 
+
+const appleRoutes = [
+    {
+        id:0,
+        routes:"AAPL/Table"
+    },
+    {
+        id:1,
+        routes:"AAPL/Graph"
+    }
+]
+class App extends Component {
+
+    update = () => {
+        // let currentIndex
+        this.state.currentIndex = -1
+        console.log(this.state.currentIndex)
+    }
+
+    constructor(props) {
+        super(props);
+        this.state = {
+            currentIndex:-1
+        }
+
+ 
+
+
 }
+
+
+handleRoutes = (param) => {
+    var crrRts = window.location.pathname //  /AAPL
+    console.log(crrRts.length)
+    const{currentIndex} = this.state;
+    let splitRoutes = crrRts.split('/');
+    console.log(splitRoutes.length);
+    console.log(splitRoutes);
+    let checkOnce = crrRts.includes("GOOG") ? googleRoutes : appleRoutes
+    console.log("---->",checkOnce);
+    if(param === "left" && currentIndex !==0){
+        this.setState({
+            currentIndex : currentIndex-1 }, () => {
+            let getRoutes = checkOnce[this.state.currentIndex];
+            console.log("left:",getRoutes);
+
+            history.push('/'+getRoutes.routes);        
+        })
+    }
+    else if (param === "right" && currentIndex !==1){
+         this.setState({
+            currentIndex: currentIndex + 1 },() => {
+            let getRoutes = checkOnce[this.state.currentIndex];
+            history.push('/'+getRoutes.routes);
+            console.log("right:",getRoutes);
+        })
+    }       
+}
+
+ 
+
+ 
+
+
+render() {
+    return ( 
+          <Router history={history} >
+            <div> 
+              <Menu up = {this.update}/>
+              {/*<Switch>    */}
+                {/* For Apple*/}
+                <Route path="/AAPL/Table"  exact
+                  render={(props) => <Table {...props} name="AAPL"/>}  
+                />
+                <Route path="/AAPL/Graph"  exact
+                  render={(props) => <Chart {...props} name="AAPL"/>}  
+                />
+                {/* For Google */}
+                <Route path="/GOOG/Table"  
+                  render={(props) => <Table {...props} name="GOOG"/>}
+                />
+                <Route path="/GOOG/Graph"  
+                  render={(props) => <Chart {...props} name="GOOG"/>}
+                />
+              {/*</Switch>*/}
+            </div>
+            <div>
+                <Button plus={() => this.handleRoutes("right")} orient='right' visibility={true} top={85} left={60} />
+                <Button minus={() => this.handleRoutes("left")} orient='left' visibility={true} top={85} left={40} />
+            </div>
+          </Router>
+    );
+}
+}
+
+ 
 
 const rootElement = document.getElementById("root");
 ReactDOM.render(<App />, rootElement);
@@ -39,3 +129,4 @@ ReactDOM.render(<App />, rootElement);
 
 
 
+// let length = length === 2 ? currentIndex : currentIndex+1;
