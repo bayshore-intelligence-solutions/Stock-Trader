@@ -1,222 +1,257 @@
 import silence_tensorflow
-import tensorflow.compat.v1 as tf
-import tensorflow.contrib.slim as slim
-from model import LstmRNN
+from model import LSTM_RNN
 from config import Config
-from utils import (
-    validate_tf_1_14_plus,
-    get_tensorflow_config
-)
+import os
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
+import tensorflow as tf
+tf.keras.backend.set_floatx('float64')
+physical_devices = tf.config.list_physical_devices('GPU')
+tf.config.experimental.set_memory_growth(physical_devices[0], enable=True)
+# from tqdm import tqdm
+
+import datetime
 from pathlib import Path
 import time
 from data import StockDataset
 from progress.bar import PixelBar
-
-if not validate_tf_1_14_plus(tf.version.VERSION):
-    raise ImportError('TensorFlow 1.14+ is only supported')
+# import os
 
 BASE = Path('./../../').absolute()
 DATA = BASE.joinpath('data')
 
-
 class Train:
-    VALID_LOSS = None
+	VALID_LOSS = None
 
-    def __init__(self, dataset, config_file):
-        # Get the user configs
-        self.conf = Config(config_file)
-        self._saver = None
+	def __init__(self, dataset, model, ckpt, ckpt_manager, config_file):
+		#Get the user configs
+		self.conf = Config(config_file)
+		self._saver = None
 
-        # Get the DAG config
-        gconf = get_tensorflow_config()
+		self.model = model
+		self.ckpt = ckpt
+		self.ckpt_manager = ckpt_manager
 
-        # Create the model in the graph
-        with tf.Session(config=gconf) as sess:
-            self.model = LstmRNN(
-                name=self.conf.name,
-                sess=sess,
-                cell_dim=self.conf.cell_dim,
-                layers=self.conf.layers['count'],
-                dropout_rate=self.conf.layers['dropout_rate'],
-                tensorboard=self.conf.tensorboard,
-                lstm_size=self.conf.lstm['size'],
-                device=self.conf.ops['device'],
-                batch_size=conf.ops['batch_size']
-            )
+		#Initilizing optimizer and loss
+		self.optim = Train._get_optimizer(self.conf.ops["optimizer"],
+			self.conf.ops["learning_rate"])
 
-            # Print all the trainable variables
-            Train._list_all_trainables()
+		self.train(dataset)
 
-            # Define Loss, Optimizer and Learning Rate
 
-            # pred and targets are not the actual predictions or labels
-            # but the location where during DAG computation, they would
-            # be accumulated.
+	@staticmethod
+	def _get_optimizer(optimizer, eta):
+		"""
+		Get the correct optimizer based on the
+		mentioned Learning rate
+		:param optimizer:
+		:param eta:
+		:return:
+		"""
+		if optimizer == 'adam':
+			return tf.keras.optimizers.Adam(learning_rate=eta, name=optimizer)
+		elif optimizer == 'adagrad':
+			return tf.keras.optimizers.Adagrad(learning_rate=eta, name=optimizer)
+		elif optimizer == 'rmsprop':
+			return tf.keras.optimizers.RMSprop(learning_rate=eta, name=optimizer)
+		raise NotImplementedError(f'Optimizer {optimizer} is not implemented')
 
-            with tf.name_scope('squared_loss'):
-                self.train_loss = Train.squared_loss(self.model.pred,
-                                                     self.model.targets,
-                                                     name="train_loss")
-                self.val_loss = Train.squared_loss(self.model.pred,
-                                                   self.model.targets,
-                                                   name='val_loss')
+	@staticmethod
+	def squared_loss(pred, true):
+		"""
+		We are using squared loss. But
+		we can define any other loss here
+		:param pred: Predicted vector
+		:param true: True response
+		:param name: Name of the graph operation
+		:return:
+		"""
+		return tf.reduce_mean(tf.square(pred - true))
 
-            with tf.name_scope('train'):
-                self.optim = Train._get_optimizer(self.conf.ops['optimizer'],
-                                                  self.conf.ops['learning_rate'])
-                self.optim = self.optim.minimize(self.train_loss, name='optim_loss')
-                self.train(dataset)
 
-    @staticmethod
-    def _get_optimizer(optimizer, eta):
-        """
-        Get the correct optimizer based on the
-        mentioned Learning rate
-        :param optimizer:
-        :param eta:
-        :return:
-        """
-        if optimizer == 'adam':
-            return tf.train.AdamOptimizer(learning_rate=eta, name=optimizer)
-        elif optimizer == 'adagrad':
-            return tf.train.AdagradOptimizer(learning_rate=eta, name=optimizer)
-        elif optimizer == 'rmsprop':
-            return tf.train.RMSPropOptimizer(learning_rate=eta, name=optimizer)
-        raise NotImplementedError(f'Optimizer {optimizer} is not implemented')
+	@staticmethod
+	def mad(pred, true):
+		"""
+		We are using the mean absolute deviation
+		"""
+		return tf.reduce_mean(tf.abs(pred-true))
 
-    @staticmethod
-    def squared_loss(pred, true, name):
-        """
-        We are using squared loss. But
-        we can define any other loss here
-        :param pred: Predicted vector
-        :param true: True response
-        :param name: Name of the graph operation
-        :return:
-        """
 
-        return tf.reduce_mean(tf.square(pred - true), name=name)
+	def train_step(self, x_batch, y_batch):
+		# train_loss_mad = tf.keras.metrics.Mean("train_loss_mad", dtype=tf.float32)
+		# train_loss_mse = tf.keras.metrics.Mean("train_loss_mse", dtype=tf.float32)
+		with tf.GradientTape() as tape:
+			pred = self.model(x_batch, training=True)
+			loss_mad = self.mad(pred, y_batch)
+			loss_mse = self.squared_loss(pred, y_batch)
+		grads = tape.gradient(loss_mad, self.model.trainable_variables)
+		self.optim.apply_gradients(zip(grads, self.model.trainable_variables))
 
-    @staticmethod
-    def _list_all_trainables():
-        """
-        List all the trainable variables
-        in the model
-        :return:
-        """
-        vars = tf.trainable_variables()
-        slim.model_analyzer.analyze_vars(vars, print_info=True)
+		return (loss_mad, loss_mse)
 
-    @property
-    def saver(self):
-        if self._saver is None:
-            self._saver = tf.train.Saver(max_to_keep=1)  # Because we rename every checkpoint
-        return self._saver
+	def val_step(self, x_val, y_val):
+		# val_loss_mad = tf.keras.metrics.Mean("val_loss_mad", dtype=tf.float32)
+		# val_loss_mse = tf.keras.metrics.Mean("val_loss_mse", dtype=tf.float32)
+		pred = self.model(x_val)
+		loss_mad = self.mad(pred, y_val)
+		loss_mse = self.squared_loss(pred, y_val)
 
-    def save_model(self, path: Path, global_step: int,
-                   val_loss: float, epoch: int,
-                   tol: float, startTime: str) -> bool:
-        """
-        This saves the model checkpoint by automatically checking
-        if the model has improves from the previous best by a tolerance amount
-        given by ```tol```.
+		return (loss_mad,loss_mse)
 
-        :param path: Path to save the model
-        :param global_step: Global step counter of the training
-        :param val_loss: Current Validation Loss
-        :param epoch: Current Epoch
-        :param tol: Tolerance level/Minimum performance improvement from the previous
-        :param startTime: Start time since epoch
-        :return: True if the model is saved else False
-        """
-        if not path.joinpath('checkpoints').is_dir():
-            raise IOError('Directoy does not exist')
+	@property
+	def saver(self):
+		if self._saver is None:
+			self._saver = tf.saved_model
+		return self._saver
 
-        PATH = path.joinpath("checkpoints").joinpath(startTime)
-        NAME = f"Epoch_{epoch}_ValLoss_{val_loss}"
+	def save_model(self, path: Path, global_step: int,
+		epoch: int, val_loss: float, tol: float, startTime: str) -> bool:
 
-        if Train.VALID_LOSS is None:
-            prev_val_loss = -1.0
-        else:
-            prev_val_loss = Train.VALID_LOSS
+		"""
+		This function saves the model checkpoint by comparing improvement
+		to the previous epoch with a tolerance value
 
-        if prev_val_loss != -1.0 and prev_val_loss - tol < val_loss:
-            # Validation loss has not improved
-            return False
+		:param model: The model to save
+		:param path: Path to save the model
+		:param global_step: Global step counter of the training
+		:param epoch: Current Epoch
+		:param val_loss: Current Validation Loss
+		:param tol: Tolerance level/Minimum performance improvement from the previous
+		:param startTime: Start time since epoch
+		:return: True if the model is saved else False
+		"""
+		if not path.joinpath("checkpoints").is_dir():
+			# Makes a new directory in case one is missing
+			os.mkdir(path.joinpath("checkpoints"))
 
-        ckpt_file = PATH.joinpath(NAME)
-        self.saver.save(sess=self.model.sess, save_path=ckpt_file,
-                        global_step=global_step)
-        Train.val_loss = val_loss
-        return True
+		PATH = path.joinpath("checkpoints").joinpath(startTime)
+		NAME = f"{epoch}"
+		# NAME = f"{epoch}"
+		if Train.VALID_LOSS is None:
+			prev_val_loss = -1.0
+		else:
+			prev_val_loss = Train.VALID_LOSS
 
-    def train(self, dataset: StockDataset):
-        """
-        Train the model
-        :param dataset: The sequential dataset
-        :return:
-        """
+		if prev_val_loss != -1.0 and prev_val_loss - tol < val_loss:
+			# Validation loss has not improved
+			return False
 
-        # Initialize all the DAG variables
-        tf.global_variables_initializer().run()
-        start_time = str(int(time.time()))
-        global_step = 0
-        EPOCHS = self.conf.ops['epochs']
-        NUM_BATCHES = dataset.num_batches
+		ckpt_manager.save(checkpoint_number=int(ckpt.step))
+		print("Saved checkpoint for step {}".format(int(ckpt.step)))
+		ckpt.step.assign_add(1)
+		Train.VALID_LOSS = val_loss
+		return True
 
-        # Write the graph summary in tensorboard
-        with tf.summary.FileWriter("./LOGDIR") as gs:
-            gs.add_graph(self.model.sess.graph)
+	def train(self, dataset: StockDataset):
+		"""
+		Train the model
+		:param dataset: The sequential dataset
+		:return:
+		"""
+		start_time = str(int(time.time()))
+		global_step = 0
 
-        # Training loop
-        for epoch in range(EPOCHS):
-            epoch_step = 0
-            # Returns an iterator only for training data
-            data = dataset.generate_for_one_epoch()
-            total_training_loss = 0.0
-            self.model.training = True
-            with PixelBar(f'Epoch {epoch + 1}: ',
-                          max=NUM_BATCHES) as bar:
-                bar.check_tty = False
-                for batch_X, batch_y in data:
-                    global_step += 1
-                    epoch_step += 1
+		EPOCHS = self.conf.ops["epochs"]
+		NUM_BATCHES = dataset.num_batches
 
-                    # Training feed dict
-                    train_data_feed = {
-                        self.model.inputs: batch_X,
-                        self.model.targets: batch_y,
-                        self.model.keep_prob: 1.0 - conf.layers['dropout_rate']
-                    }
+		# Write the graph summary in tensorboard
+		current_time = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+		# train_log_dir = os.getcwd() + '/logs/gradient_tape/' + current_time + '/train'
+		# val_log_dir = os.getcwd() + '/logs/gradient_tape/' + current_time + '/val'
+		train_log_dir = os.getcwd() + '/logs/gradient_tape/' + '/train'
+		val_log_dir = os.getcwd() + '/logs/gradient_tape/' + '/val'
+		train_summary_writer = tf.summary.create_file_writer(train_log_dir)
+		val_summary_writer = tf.summary.create_file_writer(val_log_dir)
+		############### Tensorboard not implemented #################
+		try:
+			for epoch in range(EPOCHS):
+				epoch_step = 0
+				total_train_loss_mad = 0.0
+				total_train_loss_mse = 0.0
 
-                    train_loss = self.model.sess.run(
-                        [self.train_loss, self.optim],
-                        train_data_feed
-                    )
-                    # bar.set_postfix(train_loss=round(train_loss[0], 10))
-                    bar.suffix = 'Total training Loss: {:.7e}'.format(total_training_loss)
-                    bar.next()
-                    total_training_loss += train_loss[0]
+				total_val_loss_mad = 0.0
+				total_val_loss_mse = 0.0
+				# Returns an iterator only for training data
+				train_data = dataset.generate_train_for_one_epoch()
+				with PixelBar(f"Epoch {epoch + 1}: ", max=NUM_BATCHES) as bar:
+					bar.check_tty = False
+					for x_batch, y_batch in train_data:
+						global_step+=1
+						epoch_step+=1
 
-                # Check the performance on the validation dataset
-                val_data_feed = {
-                    self.model.inputs: dataset.X_val,
-                    self.model.targets: dataset.y_val,
-                    self.model.keep_prob: 1.0
-                }
-                # self.model.training = False  # For dropouts
-                val_loss, val_pred = self.model.sess.run(
-                    [self.val_loss, self.model.pred],
-                    feed_dict=val_data_feed
-                )
+						#train model runs here
+						train_loss_mad, train_loss_mse = self.train_step(x_batch, y_batch)
+						total_train_loss_mad += train_loss_mad
+						total_train_loss_mse += train_loss_mse
 
-                print(f'\n\nEpoch: {epoch + 1}, Training Loss: {total_training_loss / NUM_BATCHES}')
-                print(f'Epoch: {epoch + 1}, Validation Loss: {val_loss}\n')
-                if not self.save_model(conf.root, global_step, val_loss, epoch+1, 0.00001, start_time):
-                    print(f'Validation loss has not improved from the previous value {Train.VALID_LOSS}')
+					total_train_loss_mad/=NUM_BATCHES
+					total_train_loss_mse/=NUM_BATCHES
+					# print("train loss : "+ str(train_loss_mad))
+					#Writing tensorboard scalars for train
+					with train_summary_writer.as_default():
+						tf.summary.scalar('mad_loss', total_train_loss_mad, step=epoch)
+						tf.summary.scalar('mse_loss', total_train_loss_mse, step=epoch)
+					# print(dataset.val.shape)
+					val_data = dataset.generate_val_for_one_epoch()
+					val_step = 0
+					for x_batch, y_batch in val_data:
+						val_step+=1
+
+						#val model runs here
+						val_loss_mad, val_loss_mse = self.val_step(x_batch, y_batch)
+						total_val_loss_mad += val_loss_mad
+						total_val_loss_mse += val_loss_mse
+
+					total_val_loss_mad/=val_step
+					total_val_loss_mse/=val_step
+					#Writing tensorboad scalars for validation
+					with val_summary_writer.as_default():
+						tf.summary.scalar('mad_loss', total_val_loss_mad, step=epoch)
+						tf.summary.scalar('mse_loss', total_val_loss_mse, step=epoch)
+
+
+					#bar stuff
+					template = "Total training loss: MAD = {:7e} , MSE = {:7e}"
+					bar.suffix =  template.format(total_train_loss_mad, total_train_loss_mse)
+					bar.next()
+					# print(f'\n\nEpoch: {epoch + 1}, Training Loss: {total_train_loss_mad}')
+					# print(f'Epoch: {epoch + 1}, Validation Loss: {total_val_loss_mad}\n')
+
+					#Model save condition
+					if not self.save_model(self.conf.root, global_step,
+						epoch_step, total_val_loss_mad, 0.00001, start_time):
+						print(f'Validation loss has not improved from the previous value {Train.VALID_LOSS}')
+
+		except KeyboardInterrupt:
+			ckpt_manager.save(int(ckpt.step))
+			print("Saved checkpoint for step {}".format(int(ckpt.step)))
+
+
 
 
 if __name__ == '__main__':
-    conf = Config('config.yaml')
-    dataset = StockDataset(config=conf)
-    trainer = Train(dataset, 'config.yaml')
+	conf = Config('config.yaml')
+	dataset = StockDataset(config=conf)
+	print("Creating the checkpoint manager")
+
+	model = LSTM_RNN(
+		name=conf.name,
+		cell_dim=conf.cell_dim,
+		layers=conf.layers['count'],
+		dropout_rate=conf.layers['dropout_rate'],
+		tensorboard=conf.tensorboard,
+		lstm_size=conf.lstm['size'],
+		device=conf.ops['device'],
+		batch_size=conf.ops['batch_size']
+		)
+	#Creating checkpoint
+	checkpoint_dir = os.getcwd() + f"/checkpoints/gap_{conf.data['gap']}/"
+	ckpt = tf.train.Checkpoint(step=tf.Variable(0),
+		LSTM_RNN=model)
+	ckpt_manager = tf.train.CheckpointManager(ckpt, checkpoint_dir, max_to_keep=11)
+	#Restoring checkpoint if available
+	ckpt.restore(ckpt_manager.latest_checkpoint)
+	if ckpt_manager.latest_checkpoint:
+		print("Restored from {}".format(ckpt_manager.latest_checkpoint))
+	else:
+		print("Initializing from scratch.")
+	trainer = Train(dataset, model, ckpt, ckpt_manager, 'config.yaml')
