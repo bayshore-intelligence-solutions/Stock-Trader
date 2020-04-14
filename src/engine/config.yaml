@@ -2,7 +2,7 @@
 name: Stock Trader
 date: 2020-02-13
 type: 'many2one'
-root_path: &root /home/antpc/PycharmProjects/StockTrader
+root_path: &root /home/sirsh/Work/Stock/Stock-Trader
 tensorboard: True
 
 many2one:
@@ -27,3 +27,5 @@ data:
   symbol:    V                                                  # Stock Symbol
   cols: ["open", "close"]                                       # Columns used to train the model
   validation_ratio: 0.2
+  gap: 3                                                        # The gap of time period to skip and forecast
+
