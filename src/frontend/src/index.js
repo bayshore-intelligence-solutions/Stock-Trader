@@ -2,12 +2,14 @@ import React, { Component } from "react";
 import ReactDOM from 'react-dom'; 
 import Menu  from "./menu.js";
 import Chart from "./chart.js";
-import Table from "./table.js"
+import Table from "./table.js";
+import Home from "./Home.js";
 import "./styless.css";
 import Button from './Button.js';
 import './Button.css';
 import {Router,Route} from 'react-router-dom';
 import createBrowserHistory from 'history/createBrowserHistory';
+import Dropdown from "./Dropdown.js";
 // import {Switch} from 'react-router'; 
 
  
@@ -38,11 +40,11 @@ const appleRoutes = [
 ]
 class App extends Component {
 
-    update = () => {
-        // let currentIndex
-        this.state.currentIndex = -1
-        console.log(this.state.currentIndex)
-    }
+    // update = () => {
+    //     // let currentIndex
+    //     this.state.currentIndex = -1
+    //     console.log(this.state.currentIndex)
+    // }
 
     constructor(props) {
         super(props);
@@ -81,7 +83,14 @@ handleRoutes = (param) => {
             history.push('/'+getRoutes.routes);
             console.log("right:",getRoutes);
         })
-    }       
+    } 
+    else if (param === "left" && currentIndex ===0) {
+        this.setState({
+            currentIndex: currentIndex-1 },() => {
+            history.push('/')
+        })
+
+    }      
 }
 
  
@@ -93,28 +102,71 @@ render() {
     return ( 
           <Router history={history} >
             <div> 
-              <Menu up = {this.update}/>
+            <Route path="/"   component={Menu} />
+                <div className='sidenav'>
+                   <Dropdown />
+                </div>
+                {/*<Dropdown />*/}
               {/*<Switch>    */}
                 {/* For Apple*/}
+              <div className='search'>
+              <input
+                type="text"
+
+                ref="search"
+                placeholder="type name here"
+              />
+              </div>
+
+                <Route path="/" exact  component={Home} />
+                {/*<Route path="/" exact component={Home} />*/}
+                <Route path="/AAPL" exact 
+                render={(props) => <div>
+                                <Button plus={() => this.handleRoutes("right")} orient='right' visibility={true} top={90} left={60} />
+                                <Button minus={() => this.handleRoutes("left")} orient='left' visibility={true} top={90} left={40} /> 
+                                </div>}
+                />
                 <Route path="/AAPL/Table"  exact
-                  render={(props) => <Table {...props} name="AAPL"/>}  
+                  render={(props) => <div> 
+                                        <Table {...props} name="AAPL"/>
+                                        <Button plus={() => this.handleRoutes("right")} orient='right' visibility={true} top={90} left={60} />
+                                        <Button minus={() => this.handleRoutes("left")} orient='left' visibility={true} top={90} left={40} />  
+                                        </div>}  
                 />
                 <Route path="/AAPL/Graph"  exact
-                  render={(props) => <Chart {...props} name="AAPL"/>}  
+                  render={(props) => <div> 
+                                        <Chart {...props} name="AAPL"/>
+                                        <Button plus={() => this.handleRoutes("right")} orient='right' visibility={true} top={90} left={60} />
+                                        <Button minus={() => this.handleRoutes("left")} orient='left' visibility={true} top={90} left={40} />  
+                                        </div>}  
                 />
                 {/* For Google */}
-                <Route path="/GOOG/Table"  
-                  render={(props) => <Table {...props} name="GOOG"/>}
+                <Route path="/GOOG" exact 
+                    render={(props) =>  <div>
+                                        <Button plus={() => this.handleRoutes("right")} orient='right' visibility={true} top={90} left={60} />
+                                        <Button minus={() => this.handleRoutes("left")} orient='left' visibility={true} top={90} left={40} /> 
+                                        </div>}
                 />
-                <Route path="/GOOG/Graph"  
-                  render={(props) => <Chart {...props} name="GOOG"/>}
+                <Route path="/GOOG/Table"  exact
+                  render={(props) => <div>
+                                        <Table {...props} name="GOOG"/>
+                                        <Button plus={() => this.handleRoutes("right")} orient='right' visibility={true} top={90} left={60} />
+                                        <Button minus={() => this.handleRoutes("left")} orient='left' visibility={true} top={90} left={40} />
+                                        </div>}
+                />
+                <Route path="/GOOG/Graph"  exact
+                  render={(props) => <div>
+                                        <Chart {...props} name="GOOG"/>
+                                        <Button plus={() => this.handleRoutes("right")} orient='right' visibility={true} top={90} left={60} />
+                                        <Button minus={() => this.handleRoutes("left")} orient='left' visibility={true} top={90} left={40} />
+                                        </div>}
                 />
               {/*</Switch>*/}
             </div>
-            <div>
+{/*            <div>
                 <Button plus={() => this.handleRoutes("right")} orient='right' visibility={true} top={85} left={60} />
                 <Button minus={() => this.handleRoutes("left")} orient='left' visibility={true} top={85} left={40} />
-            </div>
+            </div>*/}
           </Router>
     );
 }
@@ -124,9 +176,3 @@ render() {
 
 const rootElement = document.getElementById("root");
 ReactDOM.render(<App />, rootElement);
-
-
-
-
-
-// let length = length === 2 ? currentIndex : currentIndex+1;

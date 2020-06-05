@@ -18,18 +18,14 @@ class Button extends Component {
         }
 
  
-
         this.v = "not_active"
         if (props.visibility === true) {
-            this.v = "";
-
- 
-
+            this.v = " ";
         }
         // console.log("first:",props);
 }
 
- 
+
 
     render() {
         let position = {
@@ -44,17 +40,16 @@ class Button extends Component {
     else {
       inc_dec = this.props.plus
     }
-      
+    
 
  
 
         return (
-            <div>
                 <div className={this.v}>
-                     <button onClick={inc_dec}  className="button" style={position}><span className={this.rc}> &#x279C; </span></button>
+                     <button onClick={inc_dec}  className="button" style={position} ><span className={this.rc}> &#x279C; </span></button>
                     {/*<a href="#"  className="button"  > &#x279C;</a>*/}
                 </div>
-            </div>
+
             )
     }
 }

@@ -16,35 +16,88 @@
   background-color: #ff0000;
 }
 
-.dataframe {
-	padding-top: 2%;
-	padding-right: 2%;
-  padding-left: 12%;
-  float: center;
+/*.dataframe {
+
+  padding-top: 5%;
+  padding-right: 2%;
+
+}*/
+
+.react-bootstrap-table {
+  position: absolute;
+    height: 500px;   
+  overflow-y:auto;
+  width: 99%;
+  top:20%;
+  /*padding-top: 2%;*/
+/*  padding-left: 5%;*/
+  padding-right: 1%;
+  padding-left: 15%;
 }
 
 thead {
-	background-color:  #03308B;
-	color: white;
-	font-size: 20px;
+
+  position: sticky;
+  top: 0;
+  background-color:  #03308B;
+  color: white;
+  font-size: 20px;
   text-align: center;
+  table-layout:fixed;
 }
+
+
 
 td {
-	text-align: center;
-	font-family: "Roboto", "Courier New", sans-serif;
+/*  display: block;*/
+
+  text-align: center;
+  font-family: "Roboto", "Courier New", sans-serif;
+}
+.expo {
+  position: absolute;
+  bottom: 16%;
+  left:46%;
+
 }
 
-.filter-label{
-	display: block;
-  
+.react-bs-table-csv-btn {
+  position: absolute;
+  background-color: #03308B;
+  height:80px; 
+  margin:0 0 0 50%;
+  color: white;
+  font-size: .8em;
+/*  top:80%;
+  left:47%;*/
+ 
+
+  width:80px; 
+ 
+
+  border-radius: 50%;
+
+
 }
+
+
 
 .react-bs-table-sizePerPage-dropdown {
-	display: none;
+  display: none;
 }
 
+/*.chartbody {
 
+
+  padding-right: .5%;
+  padding-left: 12%;
+  float: center;
+
+}*/
+.search {
+  position: absolute;
+  left:80%;
+}
 
 body {
   background-color: #F2F2F2;
@@ -61,7 +114,6 @@ body {
   box-shadow: 2px 5px 5px 0 rgba(0, 0, 0, 0.12);
   text-align: center;
 }
-
 .menubar span {
   display: inline-block;
   position: absolute;
@@ -164,7 +216,7 @@ body {
 
   margin-top: 40px;
   padding: 0px;
-  color: white;
+  background-color:#03308B;
   list-style-type: none;
   text-align: left;
 }
@@ -180,16 +232,18 @@ body {
   border-bottom: none;
 }
 
-
+#menu li:hover {
+  background-color:#03308B;  
+}
 
 #menu button {
 /*  font-family: 'Raleway';
   src: local('Raleway-Bold'), url(./fonts/Raleway-Bold.ttf) format('truetype');*/
-	background: none;
-	padding: 0;
-	border: none;
-	color: white;
-	outline: 0;
+  background: none;
+  padding: 0;
+  border: none;
+  color: red;
+  outline: 0;
   font-weight: bold;
 }
 
@@ -206,59 +260,61 @@ body {
 }
 
 .logo {
-	position: absolute;
-	bottom: 0;
-	left: 0;
+  position: absolute;
+  bottom: 0;
+  left: 0;
 }
 
-/*.dropdown{
-  display: inline-block;
-}*/
+.content {
+  position: absolute;
+  left: 45%;
+  top: 6%;
+  color: black;
+}
 
 .sidenav {
-  display: none;
-  background-color: #03308B;
-  width: 100%;
+  position: absolute;
+  left:60%;
+  /*padding-top: 20%;*/
+  /*padding-left: 45%;*/
+  display: inline-block;
+  /*background-color: #03308B;*/
+  /*width: 100%;*/
   line-height: 2em;
+
 
 }
 
 
 
 .sidenav a, .dropdown-btn {
-  
-  outline: 0;
-  border: 0;
-  padding: 10px 0px 10px 50px;
+  position:relative;
+  border-radius: 0%;
+  /*padding: 10px 0px 10px 50px;*/
 /*  font-family: 'Raleway';
   src: local('Raleway'), url(./fonts/Raleway-Regular.ttf) format('truetype');*/
   font-size: 20px;
-  color: white;
+  color: black;
   /*border: none;*/
   width: 100px;
   /*height:50px;*/
   text-align: left;
-  transition: transform 100ms cubic-bezier(.55,.09,.68,.53);
+  /*transition: transform 100ms cubic-bezier(.55,.09,.68,.53);*/
 }
 
-.sidenav li a:hover {
+/*.sidenav li a:hover {
 
   font-weight: bold;
   display: inline-block;
   box-shadow: 0 8px 6px -6px black;
   transform: translate(20px, 5px);
-  background-color:blue;
+  background-color:grey;
   width: 100%;
   text-decoration: none;
 
 }
+*/
 
-
-/* On mouse-over */
-.sidenav a:hover{ 
-  color: none;
-
-}
 
 
 
@@ -267,32 +323,71 @@ body {
   color: red;
 
 }
+.dropdown {
+
+  text-align: center;
+}
 
 
+.dropdown ul {
+  z-index: auto;
+  background-color: white;
+  text-align: left;
+  text-decoration:none;
+}
+
+.dropdown ul li
+{
+    list-style:none;
+}
+
+
+.dropdown ul li a:hover{
+    text-decoration:none;
+
+}
 .chart {
-  padding-top: 170px;
+  position: absolute;
+  top: 220px;
+  left: 12%;
   
 }
 
-.title {
+.title h1 {
+  position: absolute;
+  left:46.5%;
+  top: 7%;
   color:#03308B;
   text-align: center;
 
 }
 
+.para {
+  color:black;
+  padding-left: 40%;
+
+
+}
+
 .recharts-wrapper {
-  left:190px;
+  position: absolute;
+  bottom:30%;
+  top:5%;
+  left:0%;
   animation: fadein 2s;
-  -moz-animation: fadein 2s; /* Firefox */
-  -webkit-animation: fadein 2s; /* Safari and Chrome */
-  -o-animation: fadein 2s; /* Opera */
-  /*position: relative;*/
+  -moz-animation: fadein 2s; 
+  -webkit-animation: fadein 2s; 
+  -o-animation: fadein 2s; 
+
 }
 
 /*.recharts-surface {
-  left:210px;
-  position: relative;
+  position: absolute;
+  top:0%;
+  left:0%;
+
 }*/
+
 
 
 @keyframes fadein {

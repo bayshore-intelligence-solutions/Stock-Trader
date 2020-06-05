@@ -21,12 +21,10 @@ code {
   background-color: #03308B;
   border-radius: 50%;
   position: absolute;
-/*  top: 85%;*/
- /* left: 50%;*/
   width: 100px;
   height: 100px;
-  margin-top: -62px;
-  margin-left: -62px;
+  margin-top: -65px;
+  margin-left: -65px;
   text-shadow: 0 -1px -1px #021b4f;
   -moz-box-shadow: 0 4px 0 #021b4f, 0 5px 5px 1px rgba(0, 0, 100, 0.7);
   -webkit-box-shadow: 0 4px 0 #021b4f, 0 5px 5px 1px rgba(0, 0, 100, 0.7);
@@ -40,15 +38,15 @@ code {
   transition-timing-function: cubic-bezier(0.25, 0.1, 0, 2.05);
   /*transition-delay: 10s;*/
 }
-.button:hover {
+/*.button:hover {
   background-color: #0445c7;
   text-shadow: 0 -1px -1px #03308b;
   -moz-box-shadow: 0 4px 0 #03308b, 0 5px 5px 1px rgba(0, 0, 100, 0.7);
   -webkit-box-shadow: 0 4px 0 #03308b, 0 5px 5px 1px rgba(0, 0, 100, 0.7);
   box-shadow: 0 4px 0 #03308b, 0 5px 5px 1px rgba(0, 0, 100, 0.7);
-}
+}*/
 .button:active {
-  /*transform: translateX(100%);*/
+
   margin-top: -58px;
   -moz-box-shadow: none;
   -webkit-box-shadow: none;

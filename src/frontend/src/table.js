@@ -1,8 +1,10 @@
 import React, { Component } from "react";
 import BootstrapTable from "react-bootstrap-table-next";
 import "bootstrap/dist/css/bootstrap.min.css";
-import paginationFactory from 'react-bootstrap-table2-paginator';
+// import paginationFactory from 'react-bootstrap-table2-paginator';
 // import filterFactory, { dateFilter} from 'react-bootstrap-table2-filter';
+import 'react-bootstrap-table2-toolkit/dist/react-bootstrap-table2-toolkit.min.css';
+import ToolkitProvider, { CSVExport } from 'react-bootstrap-table2-toolkit';
 
 
 class Table extends Component {
@@ -29,7 +31,7 @@ class Table extends Component {
   
   
   render() {
-
+    const { ExportCSVButton } = CSVExport;
     const columns= [
       {
         dataField: "Date",
@@ -66,15 +68,33 @@ class Table extends Component {
     		<div className="title"> 
     		<h1>{this.props.name}</h1>
     		</div>
-		    <div className="dataframe">
-				
-		    	<BootstrapTable keyField="Date"  
-			    					data={this.state.posts} 
-			    					columns={columns}
-                    pagination={ paginationFactory()} 
-			    	/>
-			</div>
-		</div>
+
+          <ToolkitProvider
+            keyField="Date"
+            data={ this.state.posts }
+            columns={ columns }
+              exportCSV={ {
+                        ignoreHeader: true,
+                        noAutoBOM: false
+                      } }
+          >
+            {
+              props => (
+                <div className='dataframe'>
+
+                <div>
+                  <BootstrapTable { ...props.baseProps } />
+                </div>
+                <div className='expo'>
+                  <ExportCSVButton { ...props.csvProps }>Export CSV!!</ExportCSVButton>
+                  
+                </div>
+                </div>
+              )
+            }
+          </ToolkitProvider>
+
+      </div>
     );
   }
 }

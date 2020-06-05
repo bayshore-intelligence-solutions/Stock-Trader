@@ -1,5 +1,7 @@
 import React, { Component } from "react";
 import {Link} from 'react-router-dom';
+// import Dropdown from "./Dropdown.js";
+// import Home from "./Home.js";
 
 
 
@@ -11,32 +13,26 @@ class MenuLinks extends Component {
 
   myfun(){
       var displayOption = document.querySelector('.sidenav').style.display;
+      // var dis= document.querySelector('.para').style.display;
       var option;
-      if (displayOption === 'inline-block') {
-        option = 'none'
-      }else {
-        option = 'inline-block'
+      if (displayOption === 'none') {
+        option='inline-block';
+        // document.querySelector('.para').style.display = 'none';
+      }
+      else if (displayOption !== 'none ') {
+        option = 'none';
+        // document.querySelector('.para').style.display = 'inline-block';
       }
       document.querySelector('.sidenav').style.display = option;
-      //   var dropdown = document.getElementsByClassName("sidenav");
-      //   var i;
+      // document.querySelector('.para').style.display = option;
 
-      // for (i = 0; i < dropdown.length; i++) {
-      //   dropdown[i].addEventListener("click", function() {
-      //   this.classList.toggle("active");
-      //   var dropdownContent = this.nextElementSibling;
-      //   if (dropdownContent.style.display === "block") {
-      //   dropdownContent.style.display = "none";
-      //   } else {
-      //   dropdownContent.style.display = "block";
-      //   }
-      //   });
-      // }
+
   }
   constructor(props) {
     super(props);
     // Any number of links can be added here
     this.state = {
+      displayMenu: false,
       buttons: [
         {
           text: 'Symbols',
@@ -46,30 +42,37 @@ class MenuLinks extends Component {
 
       ]
     }
+  this.showDropdownMenu = this.showDropdownMenu.bind(this);
+  this.hideDropdownMenu = this.hideDropdownMenu.bind(this);
+  }
+  showDropdownMenu(event) {
+    event.preventDefault();
+    this.setState({ displayMenu: true }, () => {
+    document.addEventListener('click', this.showDropdownMenu);
+    });
+  }
+
+  hideDropdownMenu() {
+    this.setState({ displayMenu: false }, () => {
+      document.removeEventListener('click', this.hideDropdownMenu);
+    });
+
   }
   render() {
     let buttons = this.state.buttons.map(
       (button, i) => <li ref={i + 1}><button onClick={button.onClick}>{button.text}</button></li>);
 
     return (
-        <div className={this.props.menuStatus} id='menu'>
-          <ul>
-            {buttons}
-          </ul>
+        <div>
+          <div className={this.props.menuStatus} id='menu'>
+            <ul>
+              {buttons}
+            </ul>
 
-          <img className="logo" alt="logo" src={require('./logo.jpg')} />
-           
-          <ul className="sidenav">
-            {/*<Link to="/AAPL">
-              <li>AAPL</li>
-            </Link>
-            <Link to="/GOOG">
-              <li>GOOG</li>
-            </Link>*/}
+            <img className="logo" alt="logo" src={require('./logo.jpg')} />
 
-             <li><Link onClick = {this.props.re} to="/AAPL">AAPL</Link></li>
-             <li><Link onClick = {this.props.re} to="/GOOG">GOOG</Link></li>
-          </ul>
+          </div>
+
         </div>
 
     )
@@ -108,29 +111,29 @@ _menuToggle(e) {
   // console.log("===============================>",class_exist.length);
   // if (class_exist.length>0)
   
-  if (this.state.isOpen === false) {
-    try{
-      // document.querySelector('.recharts-surface').style.cssText = "width:800px !important; right:210px; position:absolute;transition: left 0.5s linear, margin-left 0.5s ease-out";
-      console.log("part1"); 
-      // document.querySelector('.recharts-wrapper').style.cssText = "width:800px !important;left:190px !important; position:absolute;transition: transform 500ms; ";
-      // document.querySelector('.hambclicker').style.left="210px";
+  // if (this.state.isOpen === false) {
+  //   try{
+  //     // document.querySelector('.recharts-surface').style.cssText = "width:800px !important; right:210px; position:absolute;transition: left 0.5s linear, margin-left 0.5s ease-out";
+  //     console.log("part1"); 
+  //     // document.querySelector('.recharts-wrapper').style.cssText = "width:800px !important;left:190px !important; position:absolute;transition: transform 500ms; ";
+  //     // document.querySelector('.hambclicker').style.left="210px";
 
-    }
-    catch(err) {
-      console.log('part3',err);
-      document.querySelector('.hambclicker').style.left="210px";
+  //   }
+  //   catch(err) {
+  //     console.log('part3',err);
+  //     document.querySelector('.hambclicker').style.left="210px";
 
-    }
+  //   }
 
  
-  }
-  else{
-    document.querySelector('.recharts-wrapper').style.cssText = "position:absolute;left:190px !important; transform: scaleX(1.10) scaleY(1.3) translateX(-15%);transition: transform 1s";
-    document.querySelector('.hambclicker').style.left="8px";
+  // }
+  // else{
+  //   document.querySelector('.recharts-wrapper').style.cssText = "position:absolute;left:190px !important; transform: scaleX(1.10) scaleY(1.3) translateX(-15%);transition: transform 1s";
+  //   document.querySelector('.hambclicker').style.left="8px";
     
-    console.log("part2"); 
+  //   console.log("part2"); 
  
-  }
+  // }
 
   e.stopPropagation();
   this.setState({
